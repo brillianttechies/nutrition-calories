@@ -41,7 +41,13 @@ const Index = () => {
         throw new Error('Failed to analyze image');
       }
       
-      const data: NutritionResponse = await response.json();
+      const data = await response.json();
+      
+      // Check if the response contains an error
+      if (data.error) {
+        console.error('API Error:', data.error);
+        throw new Error(data.error || 'Analysis failed');
+      }
       
       // Handle the response structure
       if (data && data.status === 'success') {
@@ -58,11 +64,15 @@ const Index = () => {
         
         toast.success('Nutrition analysis complete!');
       } else {
-        throw new Error('Analysis failed');
+        console.error('Unexpected response format:', data);
+        throw new Error('Unable to analyze image. Please try a clearer photo of your meal.');
       }
     } catch (error) {
       console.error('Error analyzing image:', error);
-      toast.error('Failed to analyze image. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to analyze image';
+      toast.error(errorMessage.includes('Model output') 
+        ? 'Unable to identify food items. Please try a clearer photo with visible food.' 
+        : errorMessage);
     } finally {
       setIsAnalyzing(false);
     }
