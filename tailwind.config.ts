@@ -61,7 +61,26 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				nutrition: {
+					protein: 'hsl(var(--protein))',
+					'protein-light': 'hsl(var(--protein-light))',
+					carbs: 'hsl(var(--carbs))',
+					'carbs-light': 'hsl(var(--carbs-light))',
+					fat: 'hsl(var(--fat))',
+					'fat-light': 'hsl(var(--fat-light))'
 				}
+			},
+			backgroundImage: {
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-health': 'var(--gradient-health)',
+				'gradient-card': 'var(--gradient-card)'
+			},
+			boxShadow: {
+				'sm': 'var(--shadow-sm)',
+				'md': 'var(--shadow-md)',
+				'lg': 'var(--shadow-lg)',
+				'glow': 'var(--shadow-glow)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +103,43 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					from: { opacity: '0' },
+					to: { opacity: '1' }
+				},
+				'fade-up': {
+					from: { 
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					to: { 
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
+				},
+				'scale-in': {
+					from: { 
+						opacity: '0',
+						transform: 'scale(0.95)'
+					},
+					to: { 
+						opacity: '1',
+						transform: 'scale(1)'
+					}
+				},
+				'counter': {
+					from: { '--num': '0' },
+					to: { '--num': '100' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.5s ease-out',
+				'fade-up': 'fade-up 0.5s ease-out',
+				'scale-in': 'scale-in 0.3s ease-out',
+				'counter': 'counter 1s ease-out forwards'
 			}
 		}
 	},
