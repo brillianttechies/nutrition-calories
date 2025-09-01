@@ -12,7 +12,7 @@ const Index = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [nutritionData, setNutritionData] = useState<MacroData | null>(null);
-  const [foodBreakdown, setFoodBreakdown] = useState<NutritionResponse['output']['food'] | null>(null);
+  const [foodBreakdown, setFoodBreakdown] = useState<NutritionResponse['food'] | null>(null);
 
   const handleImageSelect = async (file: File) => {
     setSelectedImage(file);
@@ -41,30 +41,24 @@ const Index = () => {
         throw new Error('Failed to analyze image');
       }
       
-      const data = await response.json();
+      const data: NutritionResponse = await response.json();
       
       // Handle the response structure
-      if (data && data[0] && data[0].output) {
-        const nutritionResponse = data[0] as NutritionResponse;
+      if (data && data.status === 'success') {
+        // Set the total macros for display
+        setNutritionData({
+          calories: data.total.calories,
+          protein: data.total.protein,
+          carbs: data.total.carbs,
+          fat: data.total.fat
+        });
         
-        if (nutritionResponse.output.status === 'success') {
-          // Set the total macros for display
-          setNutritionData({
-            calories: nutritionResponse.output.total.calories,
-            protein: nutritionResponse.output.total.protein,
-            carbs: nutritionResponse.output.total.carbs,
-            fat: nutritionResponse.output.total.fat
-          });
-          
-          // Set the food breakdown
-          setFoodBreakdown(nutritionResponse.output.food);
-          
-          toast.success('Nutrition analysis complete!');
-        } else {
-          throw new Error('Analysis failed');
-        }
+        // Set the food breakdown
+        setFoodBreakdown(data.food);
+        
+        toast.success('Nutrition analysis complete!');
       } else {
-        throw new Error('Invalid response format');
+        throw new Error('Analysis failed');
       }
     } catch (error) {
       console.error('Error analyzing image:', error);

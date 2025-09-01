@@ -8,15 +8,13 @@ export interface FoodItem {
 }
 
 export interface NutritionResponse {
-  output: {
-    status: string;
-    food: FoodItem[];
-    total: {
-      calories: number;
-      protein: number;
-      carbs: number;
-      fat: number;
-    };
+  status: string;
+  food: FoodItem[];
+  total: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
   };
 }
 
