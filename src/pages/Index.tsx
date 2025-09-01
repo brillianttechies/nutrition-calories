@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { ImageUploader } from '@/components/ImageUploader';
-import { MacroDisplay, MacroData } from '@/components/MacroDisplay';
+import { MacroDisplay } from '@/components/MacroDisplay';
+import { FoodBreakdown } from '@/components/FoodBreakdown';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Sparkles, ChefHat, Activity } from 'lucide-react';
 import { toast } from 'sonner';
+import { MacroData, NutritionResponse } from '@/types/nutrition';
 
 const Index = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [nutritionData, setNutritionData] = useState<MacroData | null>(null);
+  const [foodBreakdown, setFoodBreakdown] = useState<NutritionResponse['output']['food'] | null>(null);
 
   const handleImageSelect = async (file: File) => {
     setSelectedImage(file);
@@ -27,27 +30,8 @@ const Index = () => {
       const formData = new FormData();
       formData.append('image', file);
       
-      // TODO: Replace with your actual API endpoint
-      const API_ENDPOINT = 'https://your-api-endpoint.com/analyze';
+      const API_ENDPOINT = 'https://ai.anchoos.com/webhook/mealai';
       
-      // Simulate API call (replace with actual API call)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Mock data for demonstration (replace with actual API response)
-      const mockData: MacroData = {
-        calories: 425,
-        protein: 32,
-        carbs: 45,
-        fat: 12,
-        fiber: 8,
-        sugar: 6
-      };
-      
-      setNutritionData(mockData);
-      toast.success('Nutrition analysis complete!');
-      
-      // Uncomment for actual API call:
-      /*
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         body: formData,
@@ -58,8 +42,30 @@ const Index = () => {
       }
       
       const data = await response.json();
-      setNutritionData(data);
-      */
+      
+      // Handle the response structure
+      if (data && data[0] && data[0].output) {
+        const nutritionResponse = data[0] as NutritionResponse;
+        
+        if (nutritionResponse.output.status === 'success') {
+          // Set the total macros for display
+          setNutritionData({
+            calories: nutritionResponse.output.total.calories,
+            protein: nutritionResponse.output.total.protein,
+            carbs: nutritionResponse.output.total.carbs,
+            fat: nutritionResponse.output.total.fat
+          });
+          
+          // Set the food breakdown
+          setFoodBreakdown(nutritionResponse.output.food);
+          
+          toast.success('Nutrition analysis complete!');
+        } else {
+          throw new Error('Analysis failed');
+        }
+      } else {
+        throw new Error('Invalid response format');
+      }
     } catch (error) {
       console.error('Error analyzing image:', error);
       toast.error('Failed to analyze image. Please try again.');
@@ -71,6 +77,7 @@ const Index = () => {
   const resetAnalysis = () => {
     setSelectedImage(null);
     setNutritionData(null);
+    setFoodBreakdown(null);
   };
 
   return (
@@ -140,6 +147,10 @@ const Index = () => {
           ) : (
             <div className="space-y-6">
               <MacroDisplay data={nutritionData} />
+              
+              {foodBreakdown && foodBreakdown.length > 0 && (
+                <FoodBreakdown foods={foodBreakdown} />
+              )}
               
               <div className="flex justify-center">
                 <Button 

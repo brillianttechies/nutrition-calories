@@ -3,14 +3,7 @@ import { ProgressRing } from './ProgressRing';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 
-export interface MacroData {
-  protein: number;
-  carbs: number;
-  fat: number;
-  calories: number;
-  fiber?: number;
-  sugar?: number;
-}
+import { MacroData } from '@/types/nutrition';
 
 interface MacroDisplayProps {
   data: MacroData;
