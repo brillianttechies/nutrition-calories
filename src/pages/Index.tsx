@@ -41,7 +41,8 @@ const Index = () => {
         throw new Error('Failed to analyze image');
       }
       
-      const data = await response.json();
+      var data = await response.json();
+      data = data.output;
       
       // Check if the response contains an error
       if (data.error) {
@@ -94,7 +95,7 @@ const Index = () => {
             <div className="flex items-center gap-2">
               <ChefHat className="w-8 h-8 text-primary" />
               <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                Hill Calories AI
+                Nutrition Calories
               </h1>
             </div>
             <Button variant="ghost" size="sm">
@@ -173,7 +174,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="container mx-auto px-4 py-8 mt-auto">
         <div className="text-center text-sm text-muted-foreground">
-          <p>© 2024 Hill Calories AI • Track your nutrition journey</p>
+          <p>© 2024 Nutrition Calories • Track your nutrition journey</p>
         </div>
       </footer>
     </div>
