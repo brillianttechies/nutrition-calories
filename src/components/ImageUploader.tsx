@@ -2,6 +2,8 @@ import React, { useCallback, useState } from 'react';
 import { Upload, Camera, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
+import heic2any from 'heic2any';
+import imageCompression from 'browser-image-compression';
 
 interface ImageUploaderProps {
   onImageSelect: (file: File) => void;
@@ -12,31 +14,45 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelect, isL
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  const [imageElement, setImageElement] = useState<HTMLImageElement | null>(null);
+  const processFile = useCallback(async (file: File) => {
+    if (!file) return;
 
-  const handleFileSelect = useCallback((file: File) => {
-    if (file && file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const previewUrl = reader.result as string;
-        setPreview(previewUrl);
+    let processedFile = file;
 
-        // Create Image element to ensure it's fully loaded before analysis
-        const img = new Image();
-        img.src = previewUrl;
-        img.onload = () => {
-          setImageElement(img); // now safe to use for analysis
-        };
-        img.onerror = (err) => {
-          console.error("Error loading image for analysis", err);
-          setImageElement(null);
-        };
-      };
-      reader.readAsDataURL(file);
-      onImageSelect(file);
+    // 1️⃣ Convert HEIC/HEIF to JPEG
+    if (file.type === 'image/heic' || file.type === 'image/heif') {
+      try {
+        const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+        processedFile = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), {
+          type: 'image/jpeg',
+        });
+      } catch (err) {
+        console.error('HEIC conversion failed', err);
+        return;
+      }
     }
+
+    // 2️⃣ Compress large images
+    try {
+      const compressedFile = await imageCompression(processedFile, {
+        maxSizeMB: 2,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+      });
+      processedFile = compressedFile;
+    } catch (err) {
+      console.error('Image compression failed', err);
+    }
+
+    // 3️⃣ Create preview
+    const previewUrl = URL.createObjectURL(processedFile);
+    setPreview(previewUrl);
+
+    // 4️⃣ Callback to parent
+    onImageSelect(processedFile);
   }, [onImageSelect]);
 
+  const handleFileSelect = useCallback((file: File) => processFile(file), [processFile]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -57,9 +73,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelect, isL
 
   const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      handleFileSelect(file);
-    }
+    if (file) handleFileSelect(file);
   }, [handleFileSelect]);
 
   const clearImage = useCallback(() => {
@@ -86,12 +100,12 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelect, isL
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             disabled={isLoading}
           />
-          
+
           <div className="text-center space-y-4 pointer-events-none">
             <div className="mx-auto w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
               <Upload className="w-10 h-10 text-primary" />
             </div>
-            
+
             <div>
               <p className="text-lg font-semibold text-foreground mb-1">
                 Drop your meal photo here
@@ -125,17 +139,6 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelect, isL
           >
             <X className="w-4 h-4" />
           </Button>
-          
-          {isLoading && (
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
-              <div className="space-y-4 text-center">
-                <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-                <p className="text-sm font-medium text-foreground animate-pulse">
-                  Analyzing your meal...
-                </p>
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>
