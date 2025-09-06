@@ -12,16 +12,31 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelect, isL
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  const [imageElement, setImageElement] = useState<HTMLImageElement | null>(null);
+
   const handleFileSelect = useCallback((file: File) => {
-    if (file && file.type.startsWith('image/')) {
+    if (file && file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreview(reader.result as string);
+        const previewUrl = reader.result as string;
+        setPreview(previewUrl);
+
+        // Create Image element to ensure it's fully loaded before analysis
+        const img = new Image();
+        img.src = previewUrl;
+        img.onload = () => {
+          setImageElement(img); // now safe to use for analysis
+        };
+        img.onerror = (err) => {
+          console.error("Error loading image for analysis", err);
+          setImageElement(null);
+        };
       };
       reader.readAsDataURL(file);
       onImageSelect(file);
     }
   }, [onImageSelect]);
+
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();

@@ -10,6 +10,7 @@ import { MacroData, NutritionResponse } from '@/types/nutrition';
 
 const Index = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imageElement, setImageElement] = useState<HTMLImageElement | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [nutritionData, setNutritionData] = useState<MacroData | null>(null);
   const [foodBreakdown, setFoodBreakdown] = useState<NutritionResponse['food'] | null>(null);
@@ -17,52 +18,55 @@ const Index = () => {
   const handleImageSelect = async (file: File) => {
     setSelectedImage(file);
     setNutritionData(null);
-    
-    // Auto-analyze when image is selected
-    await analyzeImage(file);
+    setFoodBreakdown(null);
+
+    // Create an Image element to ensure it's fully loaded before analysis
+    const img = new Image();
+    img.src = URL.createObjectURL(file); // use object URL for local file
+    img.onload = () => {
+      setImageElement(img);
+      analyzeImage(file); // safe to analyze after image is loaded
+    };
+    img.onerror = (err) => {
+      console.error('Failed to load image for analysis', err);
+      toast.error('Failed to load image. Please try a different file.');
+    };
   };
 
   const analyzeImage = async (file: File) => {
     setIsAnalyzing(true);
-    
     try {
-      // Create FormData for API request
       const formData = new FormData();
       formData.append('image', file);
-      
+
       const API_ENDPOINT = 'https://ai.anchoos.com/webhook/mealai';
-      
+
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         body: formData,
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to analyze image');
       }
-      
-      var data = await response.json();
+
+      let data = await response.json();
       data = data.output;
-      
-      // Check if the response contains an error
+
       if (data.error) {
         console.error('API Error:', data.error);
         throw new Error(data.error || 'Analysis failed');
       }
-      
-      // Handle the response structure
+
       if (data && data.status === 'success') {
-        // Set the total macros for display
         setNutritionData({
           calories: data.total.calories,
           protein: data.total.protein,
           carbs: data.total.carbs,
-          fat: data.total.fat
+          fat: data.total.fat,
         });
-        
-        // Set the food breakdown
+
         setFoodBreakdown(data.food);
-        
         toast.success('Nutrition analysis complete!');
       } else {
         console.error('Unexpected response format:', data);
@@ -71,9 +75,11 @@ const Index = () => {
     } catch (error) {
       console.error('Error analyzing image:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to analyze image';
-      toast.error(errorMessage.includes('Model output') 
-        ? 'Unable to identify food items. Please try a clearer photo with visible food.' 
-        : errorMessage);
+      toast.error(
+        errorMessage.includes('Model output')
+          ? 'Unable to identify food items. Please try a clearer photo with visible food.'
+          : errorMessage
+      );
     } finally {
       setIsAnalyzing(false);
     }
@@ -81,6 +87,7 @@ const Index = () => {
 
   const resetAnalysis = () => {
     setSelectedImage(null);
+    setImageElement(null);
     setNutritionData(null);
     setFoodBreakdown(null);
   };
@@ -112,7 +119,7 @@ const Index = () => {
             <p className="text-muted-foreground text-lg">
               Simply upload a photo of your meal and get detailed macronutrient breakdown in seconds
             </p>
-            
+
             <div className="flex gap-4 justify-center flex-wrap pt-4">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-primary" />
@@ -136,11 +143,8 @@ const Index = () => {
         <div className="max-w-4xl mx-auto">
           {!nutritionData ? (
             <Card className="p-6 md:p-8 bg-card/95 backdrop-blur border-0 shadow-xl">
-              <ImageUploader 
-                onImageSelect={handleImageSelect}
-                isLoading={isAnalyzing}
-              />
-              
+              <ImageUploader onImageSelect={handleImageSelect} isLoading={isAnalyzing} />
+
               {isAnalyzing && (
                 <div className="mt-6 text-center">
                   <p className="text-sm text-muted-foreground animate-pulse">
@@ -152,17 +156,10 @@ const Index = () => {
           ) : (
             <div className="space-y-6">
               <MacroDisplay data={nutritionData} />
-              
-              {foodBreakdown && foodBreakdown.length > 0 && (
-                <FoodBreakdown foods={foodBreakdown} />
-              )}
-              
+              {foodBreakdown && foodBreakdown.length > 0 && <FoodBreakdown foods={foodBreakdown} />}
+
               <div className="flex justify-center">
-                <Button 
-                  onClick={resetAnalysis}
-                  variant="hero"
-                  size="lg"
-                >
+                <Button onClick={resetAnalysis} variant="hero" size="lg">
                   Analyze Another Meal
                 </Button>
               </div>
