@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Sparkles, ChefHat, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 import { MacroData, NutritionResponse } from '@/types/nutrition';
+import CryptoJS from "crypto-js";
 
 const Index = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -36,6 +37,15 @@ const Index = () => {
   const analyzeImage = async (file: File) => {
     setIsAnalyzing(true);
     try {
+      // 1️⃣ Compute SHA256 hash of the file content
+      const arrayBuffer = await file.arrayBuffer();          // read file as bytes
+      const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
+      const fileHash = CryptoJS.SHA256(wordArray).toString(CryptoJS.enc.Hex);
+
+      // 2️⃣ Compute HMAC of the file hash using your secret
+      const secret = "5bde9d4e-de9e-4b13-81ff-74763c2714eb";
+      const signature = CryptoJS.HmacSHA256(fileHash, secret).toString(CryptoJS.enc.Hex);
+
       const formData = new FormData();
       formData.append('image', file);
 
@@ -43,6 +53,10 @@ const Index = () => {
 
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
+        headers: {
+          "X-File-Hash": fileHash,      // send hash of the file
+          "X-Signature": signature      // HMAC of the hash
+        },
         body: formData,
       });
 
