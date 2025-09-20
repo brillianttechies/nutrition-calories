@@ -185,7 +185,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="container mx-auto px-4 py-8 mt-auto">
         <div className="text-center text-sm text-muted-foreground">
-          <p>© 2024 Nutrition Calories • Track your nutrition journey</p>
+          <p>© {new Date().getFullYear()} Anchoos. All rights reserved.</p>
         </div>
       </footer>
     </div>
