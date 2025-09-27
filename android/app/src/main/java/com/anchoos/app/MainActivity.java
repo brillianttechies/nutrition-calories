@@ -1,4 +1,4 @@
-package com.anchoos.app;
+package com.anchoos.nutrical;
 
 import com.getcapacitor.BridgeActivity;
 

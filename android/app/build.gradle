@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.anchoos.app"
+    namespace "com.anchoos.nutrical"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.anchoos.app"
+        applicationId "com.anchoos.nutrical"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
