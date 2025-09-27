@@ -8,6 +8,7 @@ import { Sparkles, ChefHat, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 import { MacroData, NutritionResponse } from '@/types/nutrition';
 import CryptoJS from "crypto-js";
+import { trackEvent } from '@/utils/GAEvents';
 
 const Index = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -29,6 +30,7 @@ const Index = () => {
       analyzeImage(file); // safe to analyze after image is loaded
     };
     img.onerror = (err) => {
+      trackEvent("click", "engagement_failed_imageload", "analyze_button");
       console.error('Failed to load image for analysis', err);
       toast.error('Failed to load image. Please try a different file.');
     };
@@ -61,6 +63,7 @@ const Index = () => {
       });
 
       if (!response.ok) {
+        trackEvent("click", "engagement_failed_analysis", "analyze_button");
         throw new Error('Failed to analyze image');
       }
 
@@ -68,6 +71,7 @@ const Index = () => {
       data = data.output;
 
       if (data.error) {
+        trackEvent("click", "engagement_api_error", "analyze_button");
         console.error('API Error:', data.error);
         throw new Error(data.error || 'Analysis failed');
       }
@@ -82,11 +86,13 @@ const Index = () => {
 
         setFoodBreakdown(data.food);
         toast.success('Nutrition analysis complete!');
+        trackEvent("click", "engagement_success", "analyze_button");
       } else {
         console.error('Unexpected response format:', data);
         throw new Error('Unable to analyze image. Please try a clearer photo of your meal.');
       }
     } catch (error) {
+      trackEvent("click", "engagement_image_analysis_error", "analyze_button");
       console.error('Error analyzing image:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to analyze image';
       toast.error(
