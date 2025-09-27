@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import heic2any from 'heic2any';
 import imageCompression from 'browser-image-compression';
+import TakePhoto from '@/hooks/TakePhoto';
 
 interface ImageUploaderProps {
   onImageSelect: (file: File) => void;
@@ -116,10 +117,11 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelect, isL
             </div>
 
             <div className="flex gap-2 justify-center mt-4">
-              <Button variant="hero" size="sm" className="pointer-events-auto">
+              {/* <Button variant="hero" size="sm" className="pointer-events-auto">
                 <Camera className="w-4 h-4 mr-2" />
                 Take Photo
-              </Button>
+              </Button> */}
+              <TakePhoto/>
             </div>
           </div>
         </div>
