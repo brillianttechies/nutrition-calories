@@ -163,15 +163,17 @@ const Index = () => {
         <div className="max-w-4xl mx-auto">
           {!nutritionData ? (
             <Card className="p-6 md:p-8 bg-card/95 backdrop-blur border-0 shadow-xl">
-              <ImageUploader onImageSelect={handleImageSelect} isLoading={isAnalyzing} />
-
               {isAnalyzing && (
-                <div className="mt-6 text-center">
+                <div className="mt-6 flex flex-col items-center justify-center text-center">
+                  {/* Pure CSS spinner */}
+                  <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+
                   <p className="text-sm text-muted-foreground animate-pulse">
                     Our AI is analyzing your meal...
                   </p>
                 </div>
               )}
+              <ImageUploader onImageSelect={handleImageSelect} isLoading={isAnalyzing} />
             </Card>
           ) : (
             <div className="space-y-6">
